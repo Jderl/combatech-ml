@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from combatech_ml.api.schemas import (
     BehaviorPredictRequest,
     MatchAnalyticsRequest,
+    PrescriptivePredictRequest,
     TrainRequest,
     WinPredictRequest,
 )
@@ -19,6 +20,7 @@ from combatech_ml.core.combined_pipeline import (
     predict_win,
     train_all,
 )
+from combatech_ml.core.prescriptive_rules import PrescriptiveInput, evaluate_prescriptive
 
 BASE_DIR = Path(__file__).resolve().parents[3]
 ARTIFACTS_DIR = BASE_DIR / "models" / "artifacts"
@@ -108,3 +110,23 @@ def predict_match_analytics(payload: MatchAnalyticsRequest) -> dict:
         behavior_model=models.behavior_model,
     )
     return {"rows": rows}
+
+
+@app.post("/predict/prescriptive")
+def predict_prescriptive(payload: PrescriptivePredictRequest) -> dict:
+    recommendations = evaluate_prescriptive(
+        PrescriptiveInput(
+            round=payload.round,
+            hand=payload.hand,
+            foot=payload.foot,
+            dropping=payload.dropping,
+            opp_hand=payload.opp_hand,
+            opp_foot=payload.opp_foot,
+            opp_dropping=payload.opp_dropping,
+            round_score=payload.round_score,
+            light=payload.light,
+            reprimand=payload.reprimand,
+            serious_total=payload.serious_total,
+        )
+    )
+    return {"round": payload.round, "recommendations": recommendations}
