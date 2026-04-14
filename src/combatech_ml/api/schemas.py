@@ -9,6 +9,17 @@ class WinPredictRequest(BaseModel):
     ROUND: float
 
 
+class PrematchWinPredictRequest(BaseModel):
+    PM_MATCHES_PLAYED: float = 0
+    PM_WIN_RATE: float = 0.5
+    PM_AVG_OFFENSE: float = 0
+    PM_AVG_VIOLATION: float = 0
+    PM_OPP_MATCHES_PLAYED: float = 0
+    PM_OPP_WIN_RATE: float = 0.5
+    PM_OPP_AVG_OFFENSE: float = 0
+    PM_OPP_AVG_VIOLATION: float = 0
+
+
 class BehaviorPredictRequest(BaseModel):
     ROUND_OFFENSE: float
     CUM_OFFENSE: float

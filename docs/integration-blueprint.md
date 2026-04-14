@@ -20,7 +20,12 @@ Use this if you want all APIs behind Spring security and one domain.
 
 Base URL (local): `http://localhost:8001`
 
-### `POST /predict/win`
+Model mapping:
+- `LSVM (LinearSVC)` real-time per round -> `/predict/win` and `/predict/win/realtime`
+- `LSVM + Platt scaling (sigmoid calibration)` pre-match -> `/predict/win/prematch`
+- `Gaussian Naive Bayes` behavior classification -> `/predict/behavior`
+
+### `POST /predict/win` (realtime alias)
 Request:
 ```json
 {
@@ -34,6 +39,28 @@ Request:
 Response:
 ```json
 { "winProbability": 0.7421 }
+```
+
+### `POST /predict/win/prematch`
+Request:
+```json
+{
+  "PM_MATCHES_PLAYED": 3,
+  "PM_WIN_RATE": 0.66,
+  "PM_AVG_OFFENSE": 11,
+  "PM_AVG_VIOLATION": 1,
+  "PM_OPP_MATCHES_PLAYED": 1,
+  "PM_OPP_WIN_RATE": 0.5,
+  "PM_OPP_AVG_OFFENSE": 8,
+  "PM_OPP_AVG_VIOLATION": 2
+}
+```
+Response:
+```json
+{
+  "winProbability": 0.5379,
+  "calibration": "platt-scaling-sigmoid"
+}
 ```
 
 ### `POST /predict/behavior`
@@ -103,6 +130,17 @@ export interface WinPredictPayload {
   ROUND: number;
 }
 
+export interface PrematchWinPredictPayload {
+  PM_MATCHES_PLAYED?: number;
+  PM_WIN_RATE?: number;
+  PM_AVG_OFFENSE?: number;
+  PM_AVG_VIOLATION?: number;
+  PM_OPP_MATCHES_PLAYED?: number;
+  PM_OPP_WIN_RATE?: number;
+  PM_OPP_AVG_OFFENSE?: number;
+  PM_OPP_AVG_VIOLATION?: number;
+}
+
 export interface BehaviorPredictPayload {
   ROUND_OFFENSE: number;
   CUM_OFFENSE: number;
@@ -112,6 +150,11 @@ export interface BehaviorPredictPayload {
 
 export const PredictWin = async (payload: WinPredictPayload) => {
   const res = await api.post("http://localhost:8001/predict/win", payload);
+  return res.data;
+};
+
+export const PredictPrematchWin = async (payload: PrematchWinPredictPayload) => {
+  const res = await api.post("http://localhost:8001/predict/win/prematch", payload);
   return res.data;
 };
 

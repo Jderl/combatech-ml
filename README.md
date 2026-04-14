@@ -5,6 +5,12 @@ This folder now contains a consolidated Python implementation for both notebooks
 - `FINAL_ML_V7-Copy1.ipynb` -> win probability model
 - `N8_UPDATE_V2.ipynb` -> behavior classification model
 
+## Current Model Mapping
+
+- `LSVM + Platt Scaling` -> pre-match win probability (`/predict/win/prematch`)
+- `LSVM` -> real-time win probability per round (`/predict/win` and `/predict/win/realtime`)
+- `Naive Bayes` -> player behavior classification during match (`/predict/behavior`)
+
 ## Structure
 
 - `src/combatech_ml/core/combined_pipeline.py`: single merged training/inference pipeline
@@ -30,7 +36,9 @@ uvicorn combatech_ml.api.main:app --reload --port 8001
 
 - `GET /health`
 - `POST /train`
-- `POST /predict/win`
+- `POST /predict/win` (realtime alias)
+- `POST /predict/win/realtime`
+- `POST /predict/win/prematch`
 - `POST /predict/behavior`
 - `POST /predict/match-analytics`
 

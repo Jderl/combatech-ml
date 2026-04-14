@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from combatech_ml.api.schemas import (
     BehaviorPredictRequest,
     MatchAnalyticsRequest,
+    PrematchWinPredictRequest,
     PrescriptivePredictRequest,
     TrainRequest,
     WinPredictRequest,
@@ -17,6 +18,8 @@ from combatech_ml.core.combined_pipeline import (
     load_artifacts,
     load_dataset,
     predict_behavior,
+    predict_prematch_win,
+    predict_realtime_win,
     predict_win,
     train_all,
 )
@@ -26,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 ARTIFACTS_DIR = BASE_DIR / "models" / "artifacts"
 DEFAULT_DATASET = BASE_DIR / "original_files_ml" / "game_data_cleaned.csv"
 
-app = FastAPI(title="Combatech ML Service", version="1.0.0")
+app = FastAPI(title="Combatech ML Service", version="1.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,7 +45,11 @@ dataset_df: Optional[pd.DataFrame] = None
 
 def _try_load_models() -> None:
     global models
-    if (ARTIFACTS_DIR / "win_model.joblib").exists() and (ARTIFACTS_DIR / "behavior_model.joblib").exists():
+    has_realtime_model = (ARTIFACTS_DIR / "realtime_win_model.joblib").exists() or (
+        ARTIFACTS_DIR / "win_model.joblib"
+    ).exists()
+    has_behavior_model = (ARTIFACTS_DIR / "behavior_model.joblib").exists()
+    if has_realtime_model and has_behavior_model:
         models = load_artifacts(ARTIFACTS_DIR)
 
 
@@ -84,6 +91,24 @@ def predict_win_endpoint(payload: WinPredictRequest) -> dict:
 
     probability = predict_win(models.win_model, payload.model_dump())
     return {"winProbability": probability}
+
+
+@app.post("/predict/win/realtime")
+def predict_realtime_win_endpoint(payload: WinPredictRequest) -> dict:
+    if models is None:
+        raise HTTPException(status_code=503, detail="Models are not loaded. Run /train first.")
+
+    probability = predict_realtime_win(models.realtime_win_model, payload.model_dump())
+    return {"winProbability": probability}
+
+
+@app.post("/predict/win/prematch")
+def predict_prematch_win_endpoint(payload: PrematchWinPredictRequest) -> dict:
+    if models is None:
+        raise HTTPException(status_code=503, detail="Models are not loaded. Run /train first.")
+
+    probability = predict_prematch_win(models.prematch_win_model, payload.model_dump())
+    return {"winProbability": probability, "calibration": "platt-scaling-sigmoid"}
 
 
 @app.post("/predict/behavior")
