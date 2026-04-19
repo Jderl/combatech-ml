@@ -1,0 +1,22 @@
+name: Combatech Docker Deployment
+
+on:
+  workflow_run:
+    workflows: ["Combatech Docker Build and Push"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.ref_name == 'main' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT}}
+          script: ${{ secrets.DEPLOY_SCRIPT }}
