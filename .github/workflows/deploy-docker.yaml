@@ -19,4 +19,6 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           port: ${{ secrets.EC2_SSH_PORT}}
-          script: ${{ secrets.DEPLOY_SCRIPT }}
+          script: |
+            chmod +x ${{ secrets.DEPLOY_SCRIPT}}
+            ./${{ secrets.DEPLOY_SCRIPT }}
